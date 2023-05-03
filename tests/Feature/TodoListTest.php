@@ -11,15 +11,26 @@ class TodoListTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_fetch_todo_list(): void
+    public function test_fetch_all_todo_lists(): void
     {
         // preparation /prepare
-        TodoList::create(['name' => 'my list']);
+        TodoList::factory()->create(['name' => 'my list']);
 
         // action / perform
         $response = $this->getJson(route('todo-list.index'));
        
         // assertion / predict
         $this->assertEquals(1, count($response->json()));
+        $this->assertEquals('my list', $response->json()[0]['name']);
+    }
+
+    public function test_fetch_single_todo_list() {
+        $list = TodoList::factory()->create();
+        
+        $response = $this->getJson(route('todo-list.show', $list->id))
+                    ->assertOk()
+                    ->json();
+
+        $this->assertEquals($response['name'], $list->name);
     }
 }
