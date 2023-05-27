@@ -13,27 +13,38 @@ class TaskTest extends TestCase
 
     public function test_fetch_all_tasks_of_a_todo_list()
     {
-        $task = Task::factory()->create();
+        $list = $this->createTodoList();
+        $task = $this->createTask();
         
-        $response = $this->getJson(route('task.index'))->assertOk()->json();
+        $response = $this->getJson(route('todo-list.task.index', $list->id))->assertOk()->json();
         $this->assertEquals(1, count($response));
         $this->assertEquals($task->title, $response[0]['title']);
     }
 
     public function test_store_task_for_a_todo_list(){
+        $list = $this->createTodoList();
         $task = Task::factory()->make();
 
-        $this->postJson(route('task.store'), ['title' => $task->title])
+        $this->postJson(route('todo-list.task.store', $list->id), ['title' => $task->title])
             ->assertCreated();
 
         $this->assertDatabaseHas('tasks', ['title' => $task->title]);
     }
 
     public function test_delete_a_task_from_database(){
-        $task = Task::factory()->create();  
+        $task = $this->createTask();  
         
         $this->deleteJson(route('task.destroy', $task->id))->assertNoContent();
 
         $this->assertDatabaseMissing('tasks', ['title' => $task->title]);
+    }
+
+    public function test_update_a_task_of_todo_list(){
+        $list = $this->createTodoList();
+        $task = $this->createTask();
+
+        $this->patchJson(route('task.update', $task->id), ['title' => 'updated title'])->assertOk();
+
+        $this->assertDatabaseHas('tasks', ['title' => 'updated title']);
     }
 }
